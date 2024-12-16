@@ -14,27 +14,43 @@ const InvoiceForm = () => {
     const URL = `https://wa.me/${whatsappNumber}`;
     window.open(URL, "_blank");
   };
-
-  const GenratePDF = async () => {
-    const element = printRef.current;
-    if (!element) {
-      return;
-    }
-    const canvas = await html2canvas(element);
-    const data = canvas.toDataURL("image/png");
-
+  
+  const GeneratePDF = async () => {
+    const element = printRef.current; // Reference to your printable element
+    if (!element) return;
+  
+    const A4_WIDTH = 595.28; // A4 width in points (1 point = 1/72 inch)
+    const A4_HEIGHT = 841.89; // A4 height in points
+  
+    // Generate canvas with scaling for better clarity
+    const canvas = await html2canvas(element, {
+      scale: 2, // Improves print quality
+      useCORS: true, // If images are loaded from different origins
+    });
+  
+    const imgData = canvas.toDataURL("image/png");
+  
+    // Initialize PDF in portrait mode
     const pdf = new jsPDF({
       orientation: "portrait",
-      unit: "px",
+      unit: "pt",
       format: "a4",
     });
-    const imgProp = pdf.getImageProperties(data);
-    const pdfWidth = pdf.internal.pageSize.getWidth();
-    const pdfHeight = (imgProp.height * pdfWidth) / imgProp.width;
-
-    pdf.addImage(data, "PNG", 0, 0, pdfWidth, pdfHeight);
+  
+    // Calculate scaling to perfectly fit the A4 dimensions
+    const imgWidth = A4_WIDTH;
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+  
+    // Center the image vertically if it's smaller than the A4 page height
+    let yOffset = 0;
+    if (imgHeight < A4_HEIGHT) {
+      yOffset = (A4_HEIGHT - imgHeight) / 2; // Center vertically
+    }
+  
+    pdf.addImage(imgData, "PNG", 0, yOffset, imgWidth, imgHeight);
     pdf.save(`${name + dateTime.time}.pdf`);
   };
+  
   const [rows, setRows] = useState([
     { srNo: 1, productName: "", credit: "", debit: "", tax: "" },
   ]);
@@ -375,7 +391,7 @@ const InvoiceForm = () => {
       </div>
       <div className="my-3 flex items-center">
         <button
-          onClick={GenratePDF}
+          onClick={GeneratePDF}
           className="bg-blue-600 text-white border border-blue-600 p-4 rounded-md hover:bg-blue-700 hover:border-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           Download PDF
