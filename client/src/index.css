@@ -1,0 +1,12 @@
+@import "tailwindcss";
+@import "@fontsource/permanent-marker";
+@import "@fontsource/playfair-display";
+
+*{
+    user-select: none;
+}
+
+body {
+  font-family: 'Roboto', sans-serif;
+}
+    
