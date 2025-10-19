@@ -27,7 +27,7 @@ async function getImageBase64(url) {
     }
 }
 
-async function generateInvoicePdf({ pdfBusinessData, customer, rows, grandDetails, watermarkText = "SUCCESS" }) {
+async function generateInvoicePdf({ pdfBusinessData, customer, rows, grandDetails, watermarkText, endMessage }) {
     const businessInfo = {
         name: pdfBusinessData.name,
         email: pdfBusinessData.email,
@@ -197,7 +197,7 @@ async function generateInvoicePdf({ pdfBusinessData, customer, rows, grandDetail
 
             // footer
             { canvas: [{ type: "line", x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 1, color: "#ddd" }] },
-            { text: "Thank you for your business!", alignment: "center", margin: [0, 10, 0, 0] },
+            { text: endMessage || "Thank You", alignment: "center", margin: [0, 10, 0, 0] },
         ],
 
         styles: {

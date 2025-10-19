@@ -182,13 +182,16 @@ exports.generateInvoiceController = async (req, res) => {
             logo: user.logo, // assuming you store logo URL in DB
         };
 
+        const UserInfo = await userModel.find({ _id: _id });
+
         // 2. Merge business info with request body to generate PDF
         const pdfBuffer = await generateInvoicePdf({
             pdfBusinessData: businessInfo,
             customer: req.body.customer,
             rows: req.body.rows,
             grandDetails: req.body.grandDetails,
-            watermarkText: req.body.watermarkText || "SUCCESS",
+            watermarkText: UserInfo.waterMark || "Invoice Buddy",
+            endMessage:UserInfo.endMessage || "Thank You"
         });
 
         // 3. Send PDF as response
