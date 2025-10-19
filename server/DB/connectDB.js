@@ -6,7 +6,7 @@ const DB_URL = process.env.DB_URL;
 
 const connectDB = async () => {
     try {
-        const conn = await mongoose.connect(DB_URL || "mongodb+srv://heetdhameliya59:7RKSuRmlUtLwAjz2@ecomm.u9i9ozz.mongodb.net/invoiceBuddy?retryWrites=true&w=majority");
+        const conn = await mongoose.connect(DB_URL);
 
         console.log(
             `✅ Database connected successfully: ${conn.connection.host}:${conn.connection.port} / ${conn.connection.name}`
