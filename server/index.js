@@ -8,7 +8,13 @@ const indexRoutes = require("./routes/index.routes.js");
 const connectDB = require("./DB/connectDB.js"); connectDB();
 const morgan = require("morgan");
 //middlewares
-app.use(cors({ origin: "https://invoicebuddy.vercel.app/", credentials: true }));
+app.use(
+  cors({
+    origin: "https://invoicebuddy.vercel.app", // ✅ no trailing slash
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+    credentials: true, // if you're using cookies or authorization headers
+  })
+);
 app.use(express.json());
 app.use(morgan("common"))
 app.use(express.urlencoded({ extended: true }));
