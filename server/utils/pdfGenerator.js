@@ -1,6 +1,7 @@
 const PdfPrinter = require("pdfmake");
 const path = require("path");
 const axios = require("axios");
+const sharp = require("sharp");
 
 // fonts
 const fonts = {
@@ -14,19 +15,36 @@ const fonts = {
 
 const printer = new PdfPrinter(fonts);
 
-// helper to fetch remote logo
 async function getImageBase64(url) {
     if (!url) return null;
-    // If it's already a Data URL, return it as is
-    if (url.startsWith("data:")) return url;
+
+    let imageBuffer;
+    let mimeType = "image/png";
 
     try {
-        const response = await axios.get(url, { responseType: "arraybuffer" });
-        const base64 = Buffer.from(response.data, "binary").toString("base64");
-        const ext = path.extname(url).substring(1) || "png";
-        return `data:image/${ext};base64,${base64}`;
+        if (url.startsWith("data:")) {
+            // Extract the base64 part and the mime type
+            const matches = url.match(/^data:([A-Za-z-+/]+);base64,(.+)$/);
+            if (matches && matches.length === 3) {
+                mimeType = matches[1];
+                imageBuffer = Buffer.from(matches[2], "base64");
+            }
+        } else {
+            const response = await axios.get(url, { responseType: "arraybuffer" });
+            imageBuffer = Buffer.from(response.data, "binary");
+        }
+
+        if (!imageBuffer) return null;
+
+        // pdfmake/pdfkit only supports PNG and JPEG. 
+        // We convert to PNG specifically to ensure compatibility (especially for WebP)
+        const processedBuffer = await sharp(imageBuffer)
+            .toFormat("png")
+            .toBuffer();
+
+        return `data:image/png;base64,${processedBuffer.toString("base64")}`;
     } catch (err) {
-        console.log("Logo fetch failed:", err.message);
+        console.error("Image processing for PDF failed:", err.message);
         return null;
     }
 }
