@@ -1,13 +1,8 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const userModel = require("../model/user.model.js");
-const botToken = require("../utils/botToken.js").botToken;
-const TelegramBot = require("node-telegram-bot-api");
-const { generateInvoicePdf } = require("../utils/pdfGenerator.js")
-
-const token = botToken;
-const bot = new TelegramBot(token, { polling: true });
-const chat_id = "5829945529";
+const sharp = require("sharp");
+const { generateInvoicePdf } = require("../utils/pdfGenerator.js");
 
 exports.loginController = async (req, res) => {
     try {
@@ -127,25 +122,21 @@ exports.configBusinessController = async (req, res) => {
             isRegistered: true,
         };
 
-        // Upload logo to Telegram asynchronously but don't block DB update
-        const uploadLogo = async () => {
-            try {
-                const sentMessage = await bot.sendPhoto(chat_id, logoFile.buffer, {
-                    filename: logoFile.originalname,
-                    contentType: logoFile.mimetype,
-                    caption: `Uploaded via API - ${businessName} - ${businessEmail} - ${new Date().toLocaleString()}`,
-                });
-                const fileId = sentMessage.photo.at(-1).file_id;
-                const file = await bot.getFile(fileId);
-                return `https://api.telegram.org/file/bot${token}/${file.file_path}`;
-            } catch (err) {
-                console.error("Telegram upload failed:", err.message);
-                return null; // Don't block DB update
-            }
-        };
+        // Process image with sharp: resize and convert to webp for fast loading
+        let logoDataUrl = null;
+        try {
+            const optimizedLogoBuffer = await sharp(logoFile.buffer)
+                .resize({ width: 500, height: 500, fit: "inside", withoutEnlargement: true })
+                .webp({ quality: 80 })
+                .toBuffer();
 
-        const logoUrl = await uploadLogo();
-        if (logoUrl) updateData.logo = logoUrl;
+            logoDataUrl = `data:image/webp;base64,${optimizedLogoBuffer.toString("base64")}`;
+        } catch (err) {
+            console.error("Sharp processing failed:", err.message);
+            return res.status(500).json({ success: false, message: "Error processing logo image" });
+        }
+
+        if (logoDataUrl) updateData.logo = logoDataUrl;
 
         // Update user config in DB
         const updatedUserConfig = await userModel.findByIdAndUpdate(userId, updateData, { new: true });
@@ -154,6 +145,7 @@ exports.configBusinessController = async (req, res) => {
             success: true,
             message: "Business configured successfully",
             redirect: "/invoice",
+            logo: logoDataUrl,
             user: updatedUserConfig,
         });
     } catch (error) {

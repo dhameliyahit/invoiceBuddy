@@ -16,6 +16,10 @@ const printer = new PdfPrinter(fonts);
 
 // helper to fetch remote logo
 async function getImageBase64(url) {
+    if (!url) return null;
+    // If it's already a Data URL, return it as is
+    if (url.startsWith("data:")) return url;
+
     try {
         const response = await axios.get(url, { responseType: "arraybuffer" });
         const base64 = Buffer.from(response.data, "binary").toString("base64");
