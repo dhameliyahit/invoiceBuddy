@@ -6,6 +6,7 @@ import axios from "axios";
 import { useState } from "react";
 import { alertError, alertSuccess } from './../../utils/alert';
 import Loader from "./Loader";
+import { LayoutDashboard } from "lucide-react";
 
 const base_url = import.meta.env.VITE_BACKEND_URL;
 
@@ -21,7 +22,30 @@ export default function ConfigPage() {
     } = useForm();
 
     const logo = watch("logo");
-    console.log(setValue);
+
+    useEffect(() => {
+        const fetchCurrentConfig = async () => {
+            try {
+                const token = localStorage.getItem("token");
+                const res = await axios.get(`${base_url}/api/profile`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                const user = res.data.user;
+                if (user) {
+                    setValue("businessName", user.businessName);
+                    setValue("contact", user.businessPhone);
+                    setValue("email", user.businessEmail);
+                    setValue("watermark", user.waterMark);
+                    setValue("address", user.businessAddress);
+                    setValue("endMessage", user.endMessage);
+                    // logo is handled separately for preview
+                }
+            } catch (err) {
+                console.error("Fetch Config Error:", err);
+            }
+        };
+        fetchCurrentConfig();
+    }, [setValue]);
 
 
     const onSubmit = async (data) => {
@@ -71,25 +95,17 @@ export default function ConfigPage() {
 
 
     return (
-        <div className="h-screen w-full flex">
+        <div className="min-h-full w-full flex flex-col md:flex-row shadow-inner overflow-hidden">
             {/* Left Panel - Logo Upload */}
             {loading && <Loader text="Configuring your business details..." />}
             <div className="w-1/4 bg-[#280A3E] flex flex-col items-center justify-center text-white p-6 relative">
                 {/* Back Button */}
                 <button
-                    onClick={() => navigate(-1)}
-                    className="absolute top-4 left-4 cursor-pointer text-white hover:text-gray-300 text-sm flex items-center gap-1"
+                    onClick={() => navigate("/dashboard")}
+                    className="absolute top-4 left-4 cursor-pointer text-white hover:text-gray-300 text-sm flex items-center gap-1 bg-white/10 px-3 py-1.5 rounded-lg border border-white/20 transition-all"
                 >
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-4 w-4"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                    >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                    </svg>
-                    Back
+                    <LayoutDashboard size={14} />
+                    Exit Settings
                 </button>
 
                 <h2

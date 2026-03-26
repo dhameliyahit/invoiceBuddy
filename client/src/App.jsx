@@ -3,6 +3,8 @@ import { Routes, Route, Router, useLocation } from 'react-router-dom'
 import Login from './components/Login'
 import ConfigPage from './components/Config'
 import Invoice from './components/Invoice'
+import DashboardLayout from './components/DashboardLayout'
+import DashboardHome from './components/DashboardHome'
 import { initGA, logPageView } from '../utils/analytics'
 import axios from 'axios'
 
@@ -41,8 +43,18 @@ const App = () => {
     <>
       <Routes>
         <Route path="/" element={<Login />} />
+        
+        {/* Main Dashboard Layout */}
+        <Route path="/dashboard" element={<DashboardLayout />}>
+          <Route index element={<DashboardHome />} />
+          <Route path="invoice" element={<Invoice />} />
+          <Route path="settings" element={<ConfigPage />} />
+        </Route>
+
+        {/* Legacy redirect or standalone access */}
         <Route path="/config" element={<ConfigPage />} />
         <Route path="/invoice" element={<Invoice />} />
+        
         <Route path="/*" element={<div>404 Not Found</div>} />
       </Routes>
     </>

@@ -267,9 +267,10 @@ export default function InvoicePage() {
 
     return (
         <>
-            <div className="h-screen flex flex-col bg-gray-50" style={{ fontFamily: "Poppins, sans-serif" }}>
-                {/* Header */}
+            <div className={`h-full flex flex-col ${location.pathname.startsWith('/dashboard') ? '' : 'h-screen'}`} style={{ fontFamily: "Poppins, sans-serif" }}>
+                {/* Header - Only show if not in dashboard */}
                 {loading && <Loader text="Loading ..." />}
+                {!location.pathname.startsWith('/dashboard') && (
                 <header className="flex px-8 shadow-sm justify-between items-center bg-blue-900 border-b h-16 flex-shrink-0">
                     <h1 className="text-3xl font-bold text-white underline underline-offset-4 decoration-[#E3FDFD] decoration-2 decoration-wavy" style={{ fontFamily: "Playfair Display, cursive" }}>
                         Invoice Buddy
@@ -295,6 +296,7 @@ export default function InvoicePage() {
                         </div>
                     </div>
                 </header>
+                )}
 
                 {/* Main Content */}
                 <div className="flex-1 overflow-hidden">

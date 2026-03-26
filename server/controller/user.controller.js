@@ -1,6 +1,7 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const userModel = require("../model/user.model.js");
+const invoiceModel = require("../model/invoice.model.js");
 const sharp = require("sharp");
 const { generateInvoicePdf } = require("../utils/pdfGenerator.js");
 
@@ -41,7 +42,7 @@ exports.loginController = async (req, res) => {
                 return res.status(201).json({
                     success: true,
                     message: "New user created successfully",
-                    redirect: "/config",
+                    redirect: "/dashboard/settings",
                     token,
                     user: newUser,
                 });
@@ -71,7 +72,7 @@ exports.loginController = async (req, res) => {
                 return res.status(200).json({
                     success: true,
                     message: "Login successful",
-                    redirect: "/invoice",
+                    redirect: "/dashboard",
                     token,
                     user,
                 });
@@ -79,7 +80,7 @@ exports.loginController = async (req, res) => {
                 return res.status(200).json({
                     success: true,
                     message: "User found but not registered fully",
-                    redirect: "/config",
+                    redirect: "/dashboard/settings",
                     token,
                     user,
                 });
@@ -103,15 +104,9 @@ exports.configBusinessController = async (req, res) => {
         }
 
         const logoFile = req.file; // single file upload
-        if (!logoFile) {
-            return res.status(400).json({ success: false, message: "Logo file is required" });
-        }
-
-        console.log("Logo file received:", logoFile.originalname);
-
         const userId = req.user._id;
 
-        // Prepare DB update object first
+        // Prepare DB update object
         const updateData = {
             businessName,
             businessAddress,
@@ -122,21 +117,20 @@ exports.configBusinessController = async (req, res) => {
             isRegistered: true,
         };
 
-        // Process image with sharp: resize and convert to webp for fast loading
-        let logoDataUrl = null;
-        try {
-            const optimizedLogoBuffer = await sharp(logoFile.buffer)
-                .resize({ width: 500, height: 500, fit: "inside", withoutEnlargement: true })
-                .webp({ quality: 80 })
-                .toBuffer();
+        // Process image with sharp: resize and convert to webp for fast loading if provided
+        if (logoFile) {
+            try {
+                const optimizedLogoBuffer = await sharp(logoFile.buffer)
+                    .resize({ width: 500, height: 500, fit: "inside", withoutEnlargement: true })
+                    .webp({ quality: 80 })
+                    .toBuffer();
 
-            logoDataUrl = `data:image/webp;base64,${optimizedLogoBuffer.toString("base64")}`;
-        } catch (err) {
-            console.error("Sharp processing failed:", err.message);
-            return res.status(500).json({ success: false, message: "Error processing logo image" });
+                updateData.logo = `data:image/webp;base64,${optimizedLogoBuffer.toString("base64")}`;
+            } catch (err) {
+                console.error("Sharp processing failed:", err.message);
+                return res.status(500).json({ success: false, message: "Error processing logo image" });
+            }
         }
-
-        if (logoDataUrl) updateData.logo = logoDataUrl;
 
         // Update user config in DB
         const updatedUserConfig = await userModel.findByIdAndUpdate(userId, updateData, { new: true });
@@ -144,8 +138,8 @@ exports.configBusinessController = async (req, res) => {
         res.status(200).json({
             success: true,
             message: "Business configured successfully",
-            redirect: "/invoice",
-            logo: logoDataUrl,
+            redirect: "/dashboard",
+            logo: updateData.logo || null,
             user: updatedUserConfig,
         });
     } catch (error) {
@@ -154,6 +148,49 @@ exports.configBusinessController = async (req, res) => {
     }
 };
 
+
+
+
+exports.dashboardController = async (req, res) => {
+    try {
+        const userId = req.user._id;
+
+        // 1. Fetch user business config
+        const user = await userModel.findById(userId).select("-password");
+        if (!user) {
+            return res.status(404).json({ success: false, message: "User not found" });
+        }
+
+        // 2. Aggregate Invoice Stats
+        // Total Invoices count
+        const totalInvoices = await invoiceModel.countDocuments({ userId });
+
+        // Total Revenue sum
+        const stats = await invoiceModel.aggregate([
+            { $match: { userId: userId } }, // Use dynamic userId
+            { $group: { _id: null, totalRevenue: { $sum: "$grandTotal" } } }
+        ]);
+        const totalRevenue = stats.length > 0 ? stats[0].totalRevenue : 0;
+
+        // 3. Recent 5 Invoices
+        const recentInvoices = await invoiceModel.find({ userId })
+            .sort({ createdAt: -1 })
+            .limit(5);
+
+        res.status(200).json({
+            success: true,
+            user,
+            stats: {
+                totalInvoices,
+                totalRevenue
+            },
+            recentInvoices
+        });
+    } catch (error) {
+        console.error("Dashboard Error:", error.message);
+        res.status(500).json({ success: false, message: "Failed to fetch dashboard" });
+    }
+};
 
 
 exports.generateInvoiceController = async (req, res) => {
@@ -184,7 +221,40 @@ exports.generateInvoiceController = async (req, res) => {
             endMessage: user.endMessage || "Thank You"
         });
 
-        // 3. Send PDF as response
+        // 3. Save invoice to database for dashboard/history
+        try {
+            await invoiceModel.create({
+                invoiceNo: `INV-${Date.now().toString().slice(-6)}`,
+                userId: _id,
+                customer: {
+                    name: req.body.customer.name,
+                    email: req.body.customer.email,
+                    contactNo: req.body.customer.contact,
+                    companyName: req.body.customer.company,
+                    address: req.body.customer.address,
+                },
+                items: req.body.rows.map(row => ({
+                    description: row.product,
+                    quantity: row.quantity,
+                    unitPrice: row.unitPrice,
+                    total: row.total,
+                    tax: row.tax,
+                    creditAmount: row.creditAmount,
+                    debitAmount: row.debitAmount,
+                })),
+                grandSubtotal: req.body.grandDetails.grandSubtotal,
+                grandTaxAmount: req.body.grandDetails.grandTaxAmount,
+                grandCreditAmount: req.body.grandDetails.grandCreditAmount,
+                grandDebitAmount: req.body.grandDetails.grandDebitAmount,
+                grandTotal: req.body.grandDetails.grandTotal,
+                status: "sent"
+            });
+        } catch (saveErr) {
+            console.error("Failed to save invoice metadata:", saveErr.message);
+            // We don't block the PDF generation response but log it
+        }
+
+        // 4. Send PDF as response
         res.set({
             "Content-Type": "application/pdf",
             "Content-Disposition": "inline; filename=invoice.pdf",
