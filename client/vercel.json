@@ -1,5 +1,8 @@
 {
   "rewrites": [
-    { "source": "/(.*)", "destination": "/" }
+    {
+      "source": "/menu/cafebeates-dumas",
+      "destination": "/pdf/cafebeates-dumas.pdf"
+    }
   ]
 }
