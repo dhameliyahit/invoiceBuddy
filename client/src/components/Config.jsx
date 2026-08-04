@@ -3,7 +3,7 @@ import "@fontsource/playfair-display";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import axios from "axios";
-import { useState } from "react";
+import { useState,useEffect } from "react";
 import { alertError, alertSuccess } from './../../utils/alert';
 import Loader from "./Loader";
 import { LayoutDashboard } from "lucide-react";
@@ -60,13 +60,6 @@ export default function ConfigPage() {
 
             if (data.logo && data.logo[0]) {
                 formData.append("logo", data.logo[0]);
-            }
-            console.log(console.log("Base URL:", base_url))
-            console.log("data :" + data)
-            console.log("formdata : " + formData)
-
-            for (let [key, value] of formData.entries()) {
-                console.log(`${key}:`, value);
             }
             setLoading(true);
             const res = await axios.post(`${base_url}/api/config`, formData, {

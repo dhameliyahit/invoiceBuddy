@@ -3,7 +3,7 @@
 @import "@fontsource/playfair-display";
 
 *{
-    user-select: none;
+    user-select: text;
 }
 
 body {

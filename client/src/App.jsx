@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react'
-import { Routes, Route, Router, useLocation } from 'react-router-dom'
+import { Routes, Route, useLocation } from 'react-router-dom'
 import Login from './components/Login'
 import ConfigPage from './components/Config'
 import Invoice from './components/Invoice'
@@ -24,7 +24,7 @@ const App = () => {
         });
 
         const user = res.data.user;
-        initGA(user._id, user.email); 
+        initGA(user._id);
       } catch (err) {
         console.error("Failed to fetch user info for GA4:", err.message);
         initGA(); // initialize GA4 without user info

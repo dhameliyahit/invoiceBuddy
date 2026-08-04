@@ -44,7 +44,7 @@ exports.loginController = async (req, res) => {
                     message: "New user created successfully",
                     redirect: "/dashboard/settings",
                     token,
-                    user: newUser,
+                    user: { _id: newUser._id, email: newUser.email, isRegistered: newUser.isRegistered },
                 });
             }
         } else {
@@ -68,13 +68,14 @@ exports.loginController = async (req, res) => {
             });
 
             // 5. Redirect based on config
+            const safeUser = { _id: user._id, email: user.email, businessName: user.businessName, isRegistered: user.isRegistered };
             if (user.isRegistered === true) {
                 return res.status(200).json({
                     success: true,
                     message: "Login successful",
                     redirect: "/dashboard",
                     token,
-                    user,
+                    user: safeUser,
                 });
             } else {
                 return res.status(200).json({
@@ -82,7 +83,7 @@ exports.loginController = async (req, res) => {
                     message: "User found but not registered fully",
                     redirect: "/dashboard/settings",
                     token,
-                    user,
+                    user: safeUser,
                 });
             }
         }
@@ -94,8 +95,6 @@ exports.loginController = async (req, res) => {
 
 exports.configBusinessController = async (req, res) => {
     try {
-        console.log("start");
-
         const { businessName, businessAddress, businessPhone, businessEmail, waterMark, endMessage } = req.body;
 
         // Fail fast if required fields missing
@@ -212,19 +211,22 @@ exports.generateInvoiceController = async (req, res) => {
         };
 
         // 2. Merge business info with request body to generate PDF
+        const invoiceNo = `INV-${Date.now()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+
         const pdfBuffer = await generateInvoicePdf({
             pdfBusinessData: businessInfo,
             customer: req.body.customer,
             rows: req.body.rows,
             grandDetails: req.body.grandDetails,
             watermarkText: user.waterMark || "Invoice Buddy",
-            endMessage: user.endMessage || "Thank You"
+            endMessage: user.endMessage || "Thank You",
+            invoiceNo
         });
 
         // 3. Save invoice to database for dashboard/history
         try {
             await invoiceModel.create({
-                invoiceNo: `INV-${Date.now().toString().slice(-6)}`,
+                invoiceNo,
                 userId: _id,
                 customer: {
                     name: req.body.customer.name,

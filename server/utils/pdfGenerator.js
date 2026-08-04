@@ -49,7 +49,7 @@ async function getImageBase64(url) {
     }
 }
 
-async function generateInvoicePdf({ pdfBusinessData, customer, rows, grandDetails, watermarkText, endMessage }) {
+async function generateInvoicePdf({ pdfBusinessData, customer, rows, grandDetails, watermarkText, endMessage, invoiceNo }) {
     const businessInfo = {
         name: pdfBusinessData.name,
         email: pdfBusinessData.email,
@@ -57,12 +57,10 @@ async function generateInvoicePdf({ pdfBusinessData, customer, rows, grandDetail
         address: pdfBusinessData.address,
         logoUrl: pdfBusinessData.logo,
     };
-    console.log(JSON.stringify(businessInfo, null, 2))
-
     const logoBase64 = await getImageBase64(businessInfo.logoUrl);
 
     // invoice number + date
-    const invoiceNumber = `INV-${Date.now().toString().slice(-6)}`;
+    const invoiceNumber = invoiceNo || `INV-${Date.now()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
     const currentDate = new Date().toLocaleDateString("en-IN");
 
     // rows -> pdfmake table rows

@@ -1,16 +1,14 @@
-import React, { useState } from "react";
-import { LayoutDashboard, LogOut, Plus, X, User, Package, Calculator, IndianRupee, FileText, Loader2 } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { LayoutDashboard, LogOut, Plus, X, User, Package, IndianRupee, FileText, Loader2 } from "lucide-react";
 import "@fontsource/permanent-marker";
 import "@fontsource/playfair-display";
 import axios from 'axios';
-import Loading from './Loader';
-import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import Loader from './Loader';
+import { useNavigate, useLocation } from "react-router-dom";
 
 const base_url = import.meta.env.VITE_BACKEND_URL;
 import { alertError, alertSuccess } from './../../utils/alert';
 import { logEvent } from "../../utils/analytics";
-import Loader from "./Loader";
 
 export default function InvoicePage() {
     const [profile, setProfile] = useState([]);
@@ -85,6 +83,8 @@ export default function InvoicePage() {
         }
     };
 
+    const location = useLocation();
+
     // Product handlers
     const addRow = () => {
         setRows([
@@ -148,11 +148,9 @@ export default function InvoicePage() {
 
                     // Validation: Credit cannot exceed unit price
                     if (field === 'creditAmount') {
-                        const unitPrice = Number(updated.unitPrice) || 0;
                         const credit = Number(value) || 0;
                         if (credit > subtotal && subtotal > 0) {
                             updated.error = "❌ Credit cannot exceed unit price.";
-                            unitPrice
                         }
                     }
                     return updated;

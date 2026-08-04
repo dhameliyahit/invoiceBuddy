@@ -1,1 +1,0 @@
-exports.botToken = "7703939593:AAFdx95MNWTrM2K-YtaclzTuZ9ZZ5YXzO20"
