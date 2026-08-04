@@ -1,15 +1,34 @@
 const PdfPrinter = require("pdfmake");
 const path = require("path");
+const fs = require("fs");
+const os = require("os");
 const axios = require("axios");
 const sharp = require("sharp");
+const embeddedFonts = require("../fonts/fonts.data.js");
 
-// fonts
+// Fonts are embedded as base64 so PDF generation works on serverless platforms
+// (Vercel) where the original font files may not exist on the filesystem.
+// We write them to a writable temp directory once and point pdfmake at them.
+const fontDir = path.join(os.tmpdir(), "invoicebuddy-fonts");
+
+function ensureFonts() {
+    fs.mkdirSync(fontDir, { recursive: true });
+    for (const [fileName, base64] of Object.entries(embeddedFonts)) {
+        const target = path.join(fontDir, fileName);
+        if (!fs.existsSync(target)) {
+            fs.writeFileSync(target, Buffer.from(base64, "base64"));
+        }
+    }
+}
+
+ensureFonts();
+
 const fonts = {
     Roboto: {
-        normal: path.join(__dirname, "../fonts/Roboto-Regular.ttf"),
-        bold: path.join(__dirname, "../fonts/Roboto-Bold.ttf"),
-        italic: path.join(__dirname, "../fonts/Roboto-Italic.ttf"),
-        bolditalic: path.join(__dirname, "../fonts/Roboto-BoldItalic.ttf"),
+        normal: path.join(fontDir, "Roboto-Regular.ttf"),
+        bold: path.join(fontDir, "Roboto-Bold.ttf"),
+        italic: path.join(fontDir, "Roboto-Italic.ttf"),
+        bolditalic: path.join(fontDir, "Roboto-BoldItalic.ttf"),
     },
 };
 

@@ -4,11 +4,11 @@ import "@fontsource/permanent-marker";
 import "@fontsource/playfair-display";
 import axios from "axios";
 import { useNavigate } from 'react-router-dom';
-
-const base_url = import.meta.env.VITE_BACKEND_URL;
+import { BASE_URL } from './../../utils/api';
 import { alertError, alertSuccess } from './../../utils/alert';
 import Loader from "./Loader";
 
+const base_url = BASE_URL;
 
 export default function Login() {
   const {

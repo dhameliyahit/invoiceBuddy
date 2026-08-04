@@ -6,12 +6,13 @@ import Invoice from './components/Invoice'
 import DashboardLayout from './components/DashboardLayout'
 import DashboardHome from './components/DashboardHome'
 import { initGA, logPageView } from '../utils/analytics'
+import { BASE_URL } from '../utils/api'
 import axios from 'axios'
+
+const base_url = BASE_URL;
 
 const App = () => {
   const location = useLocation();
-
-  const base_url = import.meta.env.VITE_BACKEND_URL;
 
   useEffect(() => {
     const fetchUserAndInitGA = async () => {

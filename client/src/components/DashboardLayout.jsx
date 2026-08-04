@@ -13,8 +13,9 @@ import {
   Clock
 } from 'lucide-react';
 import axios from 'axios';
+import { BASE_URL } from '../../utils/api';
 
-const base_url = import.meta.env.VITE_BACKEND_URL;
+const base_url = BASE_URL;
 
 const DashboardLayout = () => {
   const [profile, setProfile] = useState(null);

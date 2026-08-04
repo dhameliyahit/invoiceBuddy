@@ -5,10 +5,11 @@ import "@fontsource/playfair-display";
 import axios from 'axios';
 import Loader from './Loader';
 import { useNavigate, useLocation } from "react-router-dom";
-
-const base_url = import.meta.env.VITE_BACKEND_URL;
+import { BASE_URL } from './../../utils/api';
 import { alertError, alertSuccess } from './../../utils/alert';
 import { logEvent } from "../../utils/analytics";
+
+const base_url = BASE_URL;
 
 export default function InvoicePage() {
     const [profile, setProfile] = useState([]);

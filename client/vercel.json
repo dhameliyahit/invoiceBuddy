@@ -1,8 +1,0 @@
-{
-  "rewrites": [
-    {
-      "source": "/menu/cafebeates-dumas.pdf",
-      "destination": "/pdf/cafebeates-dumas.pdf"
-    }
-  ]
-}

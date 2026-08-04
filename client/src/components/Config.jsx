@@ -5,10 +5,11 @@ import { useForm } from "react-hook-form";
 import axios from "axios";
 import { useState,useEffect } from "react";
 import { alertError, alertSuccess } from './../../utils/alert';
+import { BASE_URL } from './../../utils/api';
 import Loader from "./Loader";
 import { LayoutDashboard } from "lucide-react";
 
-const base_url = import.meta.env.VITE_BACKEND_URL;
+const base_url = BASE_URL;
 
 export default function ConfigPage() {
     const navigate = useNavigate();

@@ -10,8 +10,9 @@ import {
 } from 'lucide-react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
+import { BASE_URL } from '../../utils/api';
 
-const base_url = import.meta.env.VITE_BACKEND_URL;
+const base_url = BASE_URL;
 
 const DashboardHome = () => {
   const [data, setData] = useState({ stats: null, recentInvoices: [], user: null });
