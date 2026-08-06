@@ -5,6 +5,7 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 const indexRoutes = require("./routes/index.routes.js");
+const productivityRoutes = require("./routes/productivity.routes.js");
 const connectDB = require("./DB/connectDB.js");
 const morgan = require("morgan");
 
@@ -26,6 +27,7 @@ app.get("/health", (req, res) => {
 
 //routes
 app.use("/api", indexRoutes)
+app.use("/api/productivity", productivityRoutes)
 
 // Connect to MongoDB at module load (works for both local & Vercel serverless).
 // Mongoose buffers queries until the connection is established.

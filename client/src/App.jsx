@@ -5,6 +5,7 @@ import ConfigPage from './components/Config'
 import Invoice from './components/Invoice'
 import DashboardLayout from './components/DashboardLayout'
 import DashboardHome from './components/DashboardHome'
+import Productivity from './components/Productivity'
 import { initGA, logPageView } from '../utils/analytics'
 import { BASE_URL } from '../utils/api'
 import axios from 'axios'
@@ -49,6 +50,7 @@ const App = () => {
         <Route path="/dashboard" element={<DashboardLayout />}>
           <Route index element={<DashboardHome />} />
           <Route path="invoice" element={<Invoice />} />
+          <Route path="productivity" element={<Productivity />} />
           <Route path="settings" element={<ConfigPage />} />
         </Route>
 

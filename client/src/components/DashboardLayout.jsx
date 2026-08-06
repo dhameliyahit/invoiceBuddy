@@ -10,7 +10,8 @@ import {
   User,
   CreditCard,
   TrendingUp,
-  Clock
+  Clock,
+  Target
 } from 'lucide-react';
 import axios from 'axios';
 import { BASE_URL } from '../../utils/api';
@@ -53,6 +54,7 @@ const DashboardLayout = () => {
   const navItems = [
     { name: 'Dashboard', path: '/dashboard', icon: <LayoutDashboard size={20} /> },
     { name: 'Create Invoice', path: '/dashboard/invoice', icon: <FileText size={20} /> },
+    { name: 'Productivity', path: '/dashboard/productivity', icon: <Target size={20} /> },
     { name: 'Business Config', path: '/dashboard/settings', icon: <Settings size={20} /> },
   ];
 
